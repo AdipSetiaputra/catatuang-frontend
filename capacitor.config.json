@@ -1,0 +1,12 @@
+{
+  "appId": "Montra.com",
+  "appName": "Montra",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "icon": "public/logo.png",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false
+    }
+  }
+}

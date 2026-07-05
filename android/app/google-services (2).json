@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "601303129652",
+    "project_id": "montra-c35d3",
+    "storage_bucket": "montra-c35d3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:601303129652:android:3e8e7febf0166407eef461",
+        "android_client_info": {
+          "package_name": "Montra.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "601303129652-7sgsqh1anpiml1a3dvqicb94ffl3r4jt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJbJIKVUhKqpMC73I2qRgLOPhZ2e3bd5Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "601303129652-7sgsqh1anpiml1a3dvqicb94ffl3r4jt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
