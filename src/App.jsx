@@ -9,6 +9,79 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 import ChatPage from './pages/ChatPage';
 import HistoryPage from './pages/HistoryPage';
 import DashboardPage from './pages/DashboardPage';
+import { useRegisterSW } from 'virtual:pwa-register/react';
+
+function ReloadPrompt() {
+  const {
+    needRefresh: [needRefresh, setNeedRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    onRegistered(r) {
+      console.log('SW Registered');
+    },
+    onRegisterError(error) {
+      console.log('SW registration error', error);
+    },
+  });
+
+  if (!needRefresh) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: '90px',
+      left: '16px',
+      right: '16px',
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border-color)',
+      padding: '16px',
+      borderRadius: '16px',
+      boxShadow: 'var(--shadow-lg)',
+      zIndex: 99999,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px',
+      animation: 'slideUp 0.3s ease-out'
+    }}>
+      <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>✨ Pembaruan Tersedia</div>
+      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+        Versi terbaru aplikasi telah siap. Perbarui sekarang untuk mendapatkan fitur terbaru dan perbaikan sistem.
+      </div>
+      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+        <button 
+          onClick={() => updateServiceWorker(true)}
+          style={{
+            flex: 1,
+            background: 'var(--primary-color)',
+            color: 'white',
+            border: 'none',
+            padding: '10px',
+            borderRadius: '10px',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          Perbarui Sekarang
+        </button>
+        <button 
+          onClick={() => setNeedRefresh(false)}
+          style={{
+            flex: 1,
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-color)',
+            padding: '10px',
+            borderRadius: '10px',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          Nanti Saja
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function ThemeToggle() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
@@ -75,10 +148,8 @@ function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="auth-page">
-        <div className="loading-dots">
-          <span /><span /><span />
-        </div>
+      <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0D0C12' }}>
+        <img src="/logo.png" alt="Loading..." style={{ width: '80px', height: '80px', animation: 'pulse 1.5s infinite ease-in-out' }} />
       </div>
     );
   }
@@ -240,12 +311,22 @@ export default function App() {
   useEffect(() => {
     const saved = localStorage.getItem('theme');
     if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+    // Remove splash screen added in index.html
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+      setTimeout(() => {
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 400);
+      }, 500); // give app time to render
+    }
   }, []);
 
   return (
     <BrowserRouter>
       <AuthProvider>
         <RootRoutes />
+        <ReloadPrompt />
       </AuthProvider>
     </BrowserRouter>
   );
