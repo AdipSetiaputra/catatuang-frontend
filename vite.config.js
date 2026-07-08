@@ -7,11 +7,14 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-firebase': ['firebase'],
-          'vendor-ui': ['framer-motion', 'lucide-react', 'recharts'],
-          'vendor-axios': ['axios'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('firebase')) return 'vendor-firebase';
+            if (id.includes('framer-motion') || id.includes('lucide-react') || id.includes('recharts')) return 'vendor-ui';
+            if (id.includes('react-dom') || id.includes('react-router') || id.includes('react/')) return 'vendor-react';
+            if (id.includes('axios')) return 'vendor-axios';
+            return 'vendor';
+          }
         }
       }
     }
