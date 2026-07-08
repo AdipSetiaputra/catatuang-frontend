@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
-import { formatRupiah, formatDate, formatTime, getCategoryIcon, groupByDate } from '../lib/utils';
+import { formatRupiah, formatDate, formatTime, getCategoryIcon, groupByDate, getWalletLogo, getWalletColor } from '../lib/utils';
 
 const CATEGORIES = [
   'Semua',
@@ -116,9 +116,34 @@ export default function HistoryPage() {
               </div>
               <div className="tx-info">
                 <div className="tx-note">{tx.note || tx.category}</div>
-                <div className="tx-meta">
-                  {tx.wallet?.name || 'Cash'} · {formatTime(tx.created_at)}
-                  {tx.item && ` · ${tx.item}`}
+                <div className="tx-meta" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '2px' }}>
+                  {/* Wallet badge */}
+                  {(() => {
+                    const walletName = tx.wallet?.name || 'Cash';
+                    const wLogo = getWalletLogo(walletName);
+                    const wColor = getWalletColor(walletName);
+                    return (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '3px',
+                        padding: '1px 6px 1px 2px',
+                        borderRadius: '20px',
+                        background: wColor?.bg || 'var(--bg-card-hover)',
+                        border: `1px solid ${wColor?.border || 'var(--border-color)'}`,
+                        fontSize: '0.68rem',
+                        fontWeight: 600,
+                        color: wColor?.text || 'var(--text-muted)',
+                      }}>
+                        {wLogo ? (
+                          <span style={{ width: '14px', height: '14px', borderRadius: '3px', background: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '1px' }}>
+                            <img src={wLogo} alt={walletName} style={{ height: '10px', objectFit: 'contain' }} />
+                          </span>
+                        ) : <span>💳</span>}
+                        {walletName}
+                      </span>
+                    );
+                  })()}
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem' }}>{formatTime(tx.created_at)}</span>
+                  {tx.item && <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem' }}>· {tx.item}</span>}
                 </div>
               </div>
               <div className={`tx-amount ${tx.type}`}>

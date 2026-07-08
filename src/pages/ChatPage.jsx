@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import api from '../lib/api';
-import { formatRupiah, formatTime, getCategoryIcon } from '../lib/utils';
+import { formatRupiah, formatDate, formatTime, getCategoryIcon, getWalletLogo, getWalletColor } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { Camera, Image as ImageIcon, Send, PencilLine, Trash2, Bot, Sparkles, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -145,6 +145,21 @@ export default function ChatPage() {
               time: new Date().toISOString(),
             },
           ];
+        }
+
+        // Multi-transaction response (e.g. tagih tunai + ongkir)
+        if (res.data.is_multi && res.data.transactions) {
+          const txList = res.data.transactions;
+          const updatedFiltered = filtered.map((m) =>
+            m.id === userMsg.id ? { ...m, id: `user-multi-${Date.now()}` } : m
+          );
+          const aiBubbles = txList.map((tx) => ({
+            id: `ai-${tx.id}`,
+            type: 'ai',
+            transaction: tx,
+            time: tx.created_at,
+          }));
+          return [...updatedFiltered, ...aiBubbles];
         }
 
         const tx = res.data.transaction;
@@ -382,7 +397,27 @@ export default function ChatPage() {
                         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: idx < msg.transactions.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ color: 'var(--text-primary)' }}>{t.note || t.category}</span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.wallet?.name || 'Cash'}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              {(() => {
+                                const walletName = t.wallet?.name || 'Cash';
+                                const wLogo = getWalletLogo(walletName);
+                                const wColor = getWalletColor(walletName);
+                                return wLogo ? (
+                                  <span style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: '3px',
+                                    padding: '1px 6px 1px 2px',
+                                    borderRadius: '20px',
+                                    background: wColor?.bg || 'rgba(0,0,0,0.06)',
+                                    border: `1px solid ${wColor?.border || 'rgba(0,0,0,0.1)'}`,
+                                  }}>
+                                    <span style={{ width: '14px', height: '14px', borderRadius: '4px', background: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '1px' }}>
+                                      <img src={wLogo} alt={walletName} style={{ height: '10px', objectFit: 'contain' }} />
+                                    </span>
+                                    <span style={{ color: wColor?.text || 'var(--text-muted)', fontWeight: 600, fontSize: '0.7rem' }}>{walletName}</span>
+                                  </span>
+                                ) : '💳 ' + walletName;
+                              })()}
+                            </span>
                           </div>
                           <span style={{ fontWeight: 500, color: t.type === 'masuk' ? '#10b981' : '#ef4444' }}>
                             {t.type === 'masuk' ? '+' : '-'}{formatRupiah(t.amount)}
@@ -440,9 +475,11 @@ export default function ChatPage() {
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <span className="category-badge">
-                      {getCategoryIcon(tx.category)} {tx.category}
-                    </span>
+                    {tx.category && tx.category !== 'Lainnya' && (
+                      <span className="category-badge">
+                        {getCategoryIcon(tx.category)} {tx.category}
+                      </span>
+                    )}
                     <span
                       className={`tx-amount ${tx.type}`}
                       style={{ fontSize: '1rem' }}
@@ -458,10 +495,26 @@ export default function ChatPage() {
                   {/* Optional fields */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                     {tx.wallet && (
-                      <span>💳 {tx.wallet.name}</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '2px 8px 2px 3px', borderRadius: '20px',
+                        background: (() => { const c = getWalletColor(tx.wallet.name); return c?.bg || 'rgba(0,0,0,0.06)'; })(),
+                        border: (() => { const c = getWalletColor(tx.wallet.name); return `1px solid ${c?.border || 'rgba(0,0,0,0.1)'}`; })(),
+                      }}>
+                        {(() => {
+                          const wLogo = getWalletLogo(tx.wallet.name);
+                          const wColor = getWalletColor(tx.wallet.name);
+                          return wLogo ? (
+                            <>
+                              <span style={{ width: '16px', height: '16px', borderRadius: '5px', background: 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '1px' }}>
+                                <img src={wLogo} alt={tx.wallet.name} style={{ height: '12px', objectFit: 'contain' }} />
+                              </span>
+                              <span style={{ color: wColor?.text || 'var(--text-muted)', fontWeight: 600 }}>{tx.wallet.name}</span>
+                            </>
+                          ) : <><span>💳</span><span>{tx.wallet.name}</span></>;
+                        })()}
+                      </span>
                     )}
                     {tx.item && <span>📦 {tx.item}</span>}
-                    {tx.platform && <span>📱 {tx.platform}</span>}
+                    {tx.platform && tx.platform.toLowerCase() !== tx.wallet?.name?.toLowerCase() && <span>📱 {tx.platform}</span>}
                     {tx.source && <span>📥 {tx.source}</span>}
                     {tx.store && <span>🏪 {tx.store}</span>}
                   </div>
@@ -544,7 +597,7 @@ export default function ChatPage() {
           id="chat-input"
           className="chat-input"
           type="text"
-          placeholder="Ketik transaksi anda........ "
+          placeholder="Ketik transaksi..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
