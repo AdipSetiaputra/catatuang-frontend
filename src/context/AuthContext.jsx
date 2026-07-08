@@ -15,20 +15,25 @@ export function AuthProvider({ children }) {
     const initAuth = async () => {
       try {
         if (!Capacitor.isNativePlatform()) {
-          const result = await getRedirectResult(firebaseAuth);
-          if (result) {
-            const user = result.user;
-            const res = await api.post('/auth/firebase/login', {
-              email: user.email,
-              name: user.displayName,
-              google_id: user.uid,
-              avatar: user.photoURL
-            });
-            localStorage.setItem('token', res.data.token);
-            localStorage.setItem('user', JSON.stringify(res.data.user));
-            setUser(res.data.user);
-            setLoading(false);
-            return;
+          // Only check redirect result if we triggered a redirect
+          const redirectPending = localStorage.getItem('firebase_redirect_pending');
+          if (redirectPending) {
+            localStorage.removeItem('firebase_redirect_pending');
+            const result = await getRedirectResult(firebaseAuth);
+            if (result) {
+              const user = result.user;
+              const res = await api.post('/auth/firebase/login', {
+                email: user.email,
+                name: user.displayName,
+                google_id: user.uid,
+                avatar: user.photoURL
+              });
+              localStorage.setItem('token', res.data.token);
+              localStorage.setItem('user', JSON.stringify(res.data.user));
+              setUser(res.data.user);
+              setLoading(false);
+              return;
+            }
           }
         }
       } catch (err) {
@@ -118,19 +123,28 @@ export function AuthProvider({ children }) {
         setUser(res.data.user);
         return res.data;
       } else {
-        // Web - use Firebase web SDK with Popup
-        const result = await signInWithPopup(firebaseAuth, googleProvider);
-        const user = result.user;
-        const res = await api.post('/auth/firebase/login', {
-          email: user.email,
-          name: user.displayName,
-          google_id: user.uid,
-          avatar: user.photoURL
-        });
-        localStorage.setItem('token', res.data.token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-        setUser(res.data.user);
-        return res.data;
+        // Web - detect mobile vs desktop
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          // Set flag so getRedirectResult is called after redirect
+          localStorage.setItem('firebase_redirect_pending', '1');
+          await signInWithRedirect(firebaseAuth, googleProvider);
+          // Page will redirect to Google, result handled in initAuth
+          return;
+        } else {
+          const result = await signInWithPopup(firebaseAuth, googleProvider);
+          const user = result.user;
+          const res = await api.post('/auth/firebase/login', {
+            email: user.email,
+            name: user.displayName,
+            google_id: user.uid,
+            avatar: user.photoURL
+          });
+          localStorage.setItem('token', res.data.token);
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+          setUser(res.data.user);
+          return res.data;
+        }
       }
     } catch (error) {
       console.error("Firebase Login Error:", error);
