@@ -31,6 +31,25 @@ export default defineConfig({
             src: 'logo.png',
             sizes: '512x512',
             type: 'image/png'
+        ]
+      },
+      workbox: {
+        // Mencegah Service Worker memblokir request Firebase Auth (login Google)
+        navigateFallbackDenylist: [/^\/__/],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/www\.googleapis\.com\/.*/i,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'google-apis',
+            },
+          },
+          {
+            urlPattern: /^https:\/\/securetoken\.googleapis\.com\/.*/i,
+            handler: 'NetworkOnly',
+            options: {
+              cacheName: 'firebase-auth',
+            },
           }
         ]
       }
