@@ -24,7 +24,28 @@ function ReloadPrompt() {
     },
   });
 
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   if (!needRefresh) return null;
+
+  const handleUpdate = () => {
+    setIsUpdating(true);
+    // Simulate download progress
+    let currentProgress = 0;
+    const interval = setInterval(() => {
+      currentProgress += Math.floor(Math.random() * 15) + 5;
+      if (currentProgress > 100) currentProgress = 100;
+      setProgress(currentProgress);
+      
+      if (currentProgress === 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          updateServiceWorker(true);
+        }, 400); // Wait a moment at 100% before reloading
+      }
+    }, 150);
+  };
 
   return (
     <div style={{
@@ -43,42 +64,67 @@ function ReloadPrompt() {
       gap: '12px',
       animation: 'slideUp 0.3s ease-out'
     }}>
-      <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>✨ Pembaruan Tersedia</div>
-      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-        Versi terbaru aplikasi telah siap. Perbarui sekarang untuk mendapatkan fitur terbaru dan perbaikan sistem.
+      <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+        {isUpdating ? '🚀 Menginstal Pembaruan...' : '✨ Pembaruan Tersedia'}
       </div>
-      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-        <button 
-          onClick={() => updateServiceWorker(true)}
-          style={{
-            flex: 1,
-            background: 'var(--primary-color)',
-            color: 'white',
-            border: 'none',
-            padding: '10px',
-            borderRadius: '10px',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-        >
-          Perbarui Sekarang
-        </button>
-        <button 
-          onClick={() => setNeedRefresh(false)}
-          style={{
-            flex: 1,
-            background: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border-color)',
-            padding: '10px',
-            borderRadius: '10px',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-        >
-          Nanti Saja
-        </button>
-      </div>
+      
+      {!isUpdating ? (
+        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          Versi terbaru aplikasi telah siap. Perbarui sekarang untuk mendapatkan fitur terbaru dan perbaikan sistem.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
+            <span>Mengunduh aset sistem...</span>
+            <span>{Math.round((progress / 100) * 1.8 * 10) / 10} MB / 1.8 MB</span>
+          </div>
+          <div style={{ width: '100%', height: '6px', background: 'var(--bg-secondary)', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ 
+              width: `${progress}%`, height: '100%', 
+              background: 'var(--primary-color)', 
+              transition: 'width 0.2s ease-out' 
+            }} />
+          </div>
+          <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--primary-color)', textAlign: 'right' }}>
+            {progress}%
+          </div>
+        </div>
+      )}
+
+      {!isUpdating && (
+        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+          <button 
+            onClick={handleUpdate}
+            style={{
+              flex: 1,
+              background: 'var(--primary-color)',
+              color: 'white',
+              border: 'none',
+              padding: '10px',
+              borderRadius: '10px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Perbarui Sekarang
+          </button>
+          <button 
+            onClick={() => setNeedRefresh(false)}
+            style={{
+              flex: 1,
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-color)',
+              padding: '10px',
+              borderRadius: '10px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Nanti Saja
+          </button>
+        </div>
+      )}
     </div>
   );
 }
