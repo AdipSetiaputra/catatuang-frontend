@@ -35,22 +35,33 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Mencegah Service Worker memblokir request Firebase Auth (login Google)
-        navigateFallbackDenylist: [/^\/__/],
+        // Jangan cache halaman Firebase Auth (/__/auth/*)
+        navigateFallbackDenylist: [/^\/__/, /^\/api\//],
+        // Semua request ke Google / Firebase -> langsung ke network, JANGAN di-cache
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/www\.googleapis\.com\/.*/i,
+            urlPattern: /^https:\/\/.*\.googleapis\.com\/.*/i,
             handler: 'NetworkOnly',
-            options: {
-              cacheName: 'google-apis',
-            },
           },
           {
-            urlPattern: /^https:\/\/securetoken\.googleapis\.com\/.*/i,
+            urlPattern: /^https:\/\/.*\.google\.com\/.*/i,
             handler: 'NetworkOnly',
-            options: {
-              cacheName: 'firebase-auth',
-            },
+          },
+          {
+            urlPattern: /^https:\/\/.*\.firebaseapp\.com\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^https:\/\/.*\.firebase\.com\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^https:\/\/accounts\.google\.com\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            urlPattern: /^https:\/\/.*\.railway\.app\/.*/i,
+            handler: 'NetworkOnly',
           }
         ]
       }
