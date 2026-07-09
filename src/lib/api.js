@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+let baseURL = import.meta.env.VITE_API_URL || 'https://catatuang-backend-production.up.railway.app/api';
+
+if (baseURL && !baseURL.startsWith('http')) {
+  baseURL = `https://${baseURL}`;
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://catatuang-backend-production.up.railway.app/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
