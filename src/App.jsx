@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { App as CapacitorApp } from '@capacitor/app';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -234,6 +235,54 @@ function RootRoutes() {
   );
 }
 
+function BackButtonHandler() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const lastBackPress = useRef(0);
+
+  useEffect(() => {
+    let toastEl = null;
+
+    const backButtonListener = CapacitorApp.addListener('backButton', () => {
+      const rootPages = ['/', '/dashboard', '/history', '/login'];
+      const currentPath = location.pathname;
+
+      if (rootPages.includes(currentPath)) {
+        const now = Date.now();
+        if (now - lastBackPress.current < 2000) {
+          CapacitorApp.exitApp();
+        } else {
+          lastBackPress.current = now;
+          // Show toast
+          if (toastEl && document.body.contains(toastEl)) {
+             document.body.removeChild(toastEl);
+          }
+          toastEl = document.createElement('div');
+          toastEl.className = 'toast';
+          toastEl.style.bottom = '90px'; // above bottom nav
+          toastEl.style.top = 'auto'; // override default top toast
+          toastEl.textContent = 'Tekan sekali lagi untuk keluar';
+          document.body.appendChild(toastEl);
+
+          setTimeout(() => {
+            if (toastEl && document.body.contains(toastEl)) {
+              document.body.removeChild(toastEl);
+            }
+          }, 2000);
+        }
+      } else {
+        navigate(-1);
+      }
+    });
+
+    return () => {
+      backButtonListener.then(listener => listener.remove());
+    };
+  }, [location, navigate]);
+
+  return null;
+}
+
 export default function App() {
   // Initialize theme on app load so login page also gets it
   useEffect(() => {
@@ -252,6 +301,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <BackButtonHandler />
       <AuthProvider>
         <RootRoutes />
       </AuthProvider>
