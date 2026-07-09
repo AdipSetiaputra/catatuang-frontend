@@ -137,6 +137,7 @@ export default function DashboardPage() {
         <div style={{ position: 'relative', display: 'inline-block' }}>
           <DatePicker 
             selected={new Date(selectedDate)}
+            popperPlacement="bottom-end"
             onChange={(date) => {
               if (!date) return;
               const d = new Date(date);
