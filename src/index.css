@@ -1113,6 +1113,11 @@ a:hover {
   transition: all var(--transition-fast) !important;
 }
 
+.react-datepicker__day--outside-month {
+  color: var(--text-muted) !important;
+  opacity: 0.4 !important;
+}
+
 .react-datepicker__day:hover {
   background-color: var(--bg-card-hover) !important;
   transform: scale(1.1);
