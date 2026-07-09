@@ -184,7 +184,7 @@ export default function DashboardPage() {
           <span className="summary-value expense">-{formatRupiah(data.today.total_keluar)}</span>
         </div>
         <div className="summary-card full-width">
-          <span className="summary-label">Selisih</span>
+          <span className="summary-label">Pendapatan</span>
           <span className={`summary-value ${data.today.net >= 0 ? 'income' : 'expense'}`}>
             {data.today.net >= 0 ? '+' : ''}{formatRupiah(data.today.net)}
           </span>
