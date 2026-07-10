@@ -286,7 +286,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="page" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 68px)' }}>
+    <div className="page" style={{ display: 'flex', flexDirection: 'column', height: '100%', paddingBottom: 'calc(57px + max(8px, env(safe-area-inset-bottom)))' }}>
       {/* Chat Messages */}
       <div className="chat-container">
         {messages.length === 0 && (
