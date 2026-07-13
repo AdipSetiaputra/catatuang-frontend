@@ -88,7 +88,9 @@ export function getCategoryIcon(category) {
 export function groupByDate(transactions) {
   const groups = {};
   for (const tx of transactions) {
-    const dateKey = new Date(tx.created_at).toISOString().split('T')[0];
+    const d = new Date(tx.created_at);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    const dateKey = d.toISOString().split('T')[0];
     if (!groups[dateKey]) groups[dateKey] = [];
     groups[dateKey].push(tx);
   }
