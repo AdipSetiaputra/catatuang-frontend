@@ -23,6 +23,10 @@ export default function HistoryPage() {
   const [toast, setToast] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [filterType, setFilterType] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [summary, setSummary] = useState({ total_masuk: 0, total_keluar: 0, net: 0 });
 
   useEffect(() => {
     api.get('/wallets').then((res) => setWallets(res.data.wallets));
@@ -32,7 +36,7 @@ export default function HistoryPage() {
     setPage(1);
     setTransactions([]);
     fetchTransactions(1);
-  }, [category, walletId]);
+  }, [category, walletId, startDate, endDate]);
 
   useEffect(() => {
     if (toast) {
@@ -47,12 +51,19 @@ export default function HistoryPage() {
       const params = { page: pageNum };
       if (category !== 'Semua') params.category = category;
       if (walletId) params.wallet_id = walletId;
+      if (startDate && endDate) {
+        params.start_date = startDate;
+        params.end_date = endDate;
+      }
 
       const res = await api.get('/transactions', { params });
       const newData = res.data.data || [];
       
       if (pageNum === 1) {
         setTransactions(newData);
+        if (res.data.summary) {
+          setSummary(res.data.summary);
+        }
       } else {
         setTransactions((prev) => [...prev, ...newData]);
       }
@@ -64,6 +75,35 @@ export default function HistoryPage() {
     }
   };
 
+  const handleFilterChange = (type) => {
+    setFilterType(type);
+    if (type === 'all') {
+      setStartDate('');
+      setEndDate('');
+    } else if (type === 'week') {
+      const today = new Date();
+      const first = today.getDate() - today.getDay() + 1;
+      const last = first + 6;
+      const start = new Date(today.setDate(first));
+      start.setMinutes(start.getMinutes() - start.getTimezoneOffset());
+      const end = new Date(today.setDate(last));
+      end.setMinutes(end.getMinutes() - end.getTimezoneOffset());
+      setStartDate(start.toISOString().split('T')[0]);
+      setEndDate(end.toISOString().split('T')[0]);
+    } else if (type === 'month') {
+      const today = new Date();
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      start.setMinutes(start.getMinutes() - start.getTimezoneOffset());
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      end.setMinutes(end.getMinutes() - end.getTimezoneOffset());
+      setStartDate(start.toISOString().split('T')[0]);
+      setEndDate(end.toISOString().split('T')[0]);
+    } else if (type === 'custom') {
+      setStartDate('');
+      setEndDate('');
+    }
+  };
+
   const loadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
@@ -72,25 +112,44 @@ export default function HistoryPage() {
 
   const grouped = groupByDate(transactions);
 
-  // Calculate monthly summary from loaded transactions
-  const totalMasuk = transactions
-    .filter((t) => t.type === 'masuk')
-    .reduce((sum, t) => sum + t.amount, 0);
-  const totalKeluar = transactions
-    .filter((t) => t.type === 'keluar')
-    .reduce((sum, t) => sum + t.amount, 0);
-
   return (
     <div className="page">
-      {/* Monthly Summary */}
-      <div style={{ padding: '16px', display: 'flex', gap: '12px' }}>
-        <div style={{ flex: 1, background: 'var(--bg-success)', padding: '12px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15), 0 1px 2px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255,255,255,0.6)' }}>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Total Masuk</div>
-          <div style={{ fontWeight: 700, color: 'var(--text-success)', fontSize: '0.95rem' }}>+{formatRupiah(totalMasuk)}</div>
+      {/* Date Filter */}
+      <div style={{ padding: '16px 16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <select 
+          value={filterType} 
+          onChange={(e) => handleFilterChange(e.target.value)}
+          style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none' }}
+        >
+          <option value="all">Semua Waktu</option>
+          <option value="week">Minggu Ini</option>
+          <option value="month">Bulan Ini</option>
+          <option value="custom">Pilih Tanggal</option>
+        </select>
+
+        {filterType === 'custom' && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none' }} />
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ flex: 1, padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none' }} />
+          </div>
+        )}
+      </div>
+
+      {/* Summary */}
+      <div style={{ padding: '16px', display: 'flex', gap: '8px' }}>
+        <div style={{ flex: 1, background: 'var(--bg-success)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)' }}>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Masuk</div>
+          <div style={{ fontWeight: 700, color: 'var(--text-success)', fontSize: '0.85rem' }}>+{formatRupiah(summary.total_masuk)}</div>
         </div>
-        <div style={{ flex: 1, background: 'var(--bg-danger)', padding: '12px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.2)', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15), 0 1px 2px rgba(239, 68, 68, 0.1), inset 0 1px 0 rgba(255,255,255,0.6)' }}>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Total Keluar</div>
-          <div style={{ fontWeight: 700, color: 'var(--text-danger)', fontSize: '0.95rem' }}>-{formatRupiah(totalKeluar)}</div>
+        <div style={{ flex: 1, background: 'var(--bg-danger)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.2)', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.15)' }}>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Keluar</div>
+          <div style={{ fontWeight: 700, color: 'var(--text-danger)', fontSize: '0.85rem' }}>-{formatRupiah(summary.total_keluar)}</div>
+        </div>
+        <div style={{ flex: 1, background: 'var(--bg-card)', padding: '10px', borderRadius: 'var(--radius-md)', textAlign: 'center', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Pendapatan</div>
+          <div style={{ fontWeight: 700, color: summary.net >= 0 ? 'var(--text-success)' : 'var(--text-danger)', fontSize: '0.85rem' }}>
+            {summary.net >= 0 ? '+' : ''}{formatRupiah(summary.net)}
+          </div>
         </div>
       </div>
 
