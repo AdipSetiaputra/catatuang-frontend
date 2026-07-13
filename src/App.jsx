@@ -65,7 +65,7 @@ function PageWrapper({ children }) {
       exit="out"
       variants={pageVariants}
       transition={pageTransition}
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}
     >
       {children}
     </motion.div>
@@ -171,7 +171,7 @@ function AppLayout() {
       </div>
 
       {/* Page Content */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<PageWrapper><ChatPage /></PageWrapper>} />
