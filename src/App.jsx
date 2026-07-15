@@ -116,7 +116,7 @@ function AppLayout() {
       {/* Header */}
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logo.png" alt="Montra Logo" style={{ height: '28px', width: '28px', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="Montra Logo" style={{ height: '28px', width: '28px', objectFit: 'cover', borderRadius: '50%' }} />
           <h1 style={{ fontSize: '1.25rem', letterSpacing: '-0.02em', textTransform: 'lowercase' }}>montra</h1>
         </div>
         <div style={{ position: 'relative' }} ref={dropdownRef}>

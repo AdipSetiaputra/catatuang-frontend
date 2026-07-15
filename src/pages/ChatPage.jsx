@@ -291,14 +291,16 @@ export default function ChatPage() {
       <div className="chat-container">
         {messages.length === 0 && (
           <div className="empty-state">
-            <motion.img
-              src="/logo.png"
-              alt="Montra Logo"
-              style={{ height: '64px', marginBottom: '16px', objectFit: 'contain' }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
-            />
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', marginBottom: '16px', margin: '0 auto 16px auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <motion.img
+                src="/bot.png"
+                alt="Bot Logo"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1.35 }}
+                transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
+              />
+            </div>
             <h2 style={{ fontSize: '1.2rem', marginBottom: '4px', fontWeight: 600 }}>
               {typedTitle}
               <span className="cursor-blink" style={{ opacity: typedTitle.length === titleText.length ? 0 : 1 }}>|</span>
@@ -384,8 +386,8 @@ export default function ChatPage() {
               <div key={msg.id} className="bubble-wrapper ai">
                 <div className="bubble ai">
                   <div style={{ marginBottom: '8px', color: 'var(--text-primary)', display: 'flex', gap: '8px' }}>
-                    <div style={{ background: 'white', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(6,182,212,0.15)', border: '1px solid rgba(0,0,0,0.05)' }}>
-                      <img src="/logo.png" alt="logo" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+                    <div style={{ borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                      <img src="/bot.png" alt="bot" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.35)' }} />
                     </div>
                     <span style={{ whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word' }}>{msg.message}</span>
                   </div>
@@ -467,8 +469,8 @@ export default function ChatPage() {
               <div key={msg.id} className="bubble-wrapper ai">
                 <div className="bubble ai">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <div style={{ background: 'white', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(6,182,212,0.15)', border: '1px solid rgba(0,0,0,0.05)' }}>
-                      <img src="/logo.png" alt="logo" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+                    <div style={{ borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                      <img src="/bot.png" alt="bot" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scale(1.35)' }} />
                     </div>
                     <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>
                       {tx.is_receipt ? 'Struk dicatat' : 'Dicatat'}
