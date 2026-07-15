@@ -63,23 +63,42 @@ export default function ChatPage() {
   const loadToday = async () => {
     try {
       const res = await api.get('/transactions/today');
-      const existing = res.data.transactions
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-        .flatMap((tx) => [
-          {
+      
+      const visibleTxs = res.data.transactions
+        .filter(tx => tx.source !== 'SISTEM_TRANSFER')
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+      const groupedMessages = [];
+      let lastRawInput = null;
+
+      for (const tx of visibleTxs) {
+        if (tx.raw_input && tx.raw_input !== lastRawInput) {
+          groupedMessages.push({
             id: `user-${tx.id}`,
             type: 'user',
-            text: tx.raw_input || tx.note,
+            text: tx.raw_input,
             time: tx.created_at,
-          },
-          {
-            id: `ai-${tx.id}`,
-            type: 'ai',
-            transaction: tx,
+          });
+          lastRawInput = tx.raw_input;
+        } else if (!tx.raw_input && tx.note !== lastRawInput) {
+          groupedMessages.push({
+            id: `user-${tx.id}`,
+            type: 'user',
+            text: tx.note,
             time: tx.created_at,
-          },
-        ]);
-      setMessages(existing);
+          });
+          lastRawInput = tx.note;
+        }
+
+        groupedMessages.push({
+          id: `ai-${tx.id}`,
+          type: 'ai',
+          transaction: tx,
+          time: tx.created_at,
+        });
+      }
+
+      setMessages(groupedMessages);
     } catch (e) {
       console.error('Failed to load today transactions', e);
     }
@@ -149,7 +168,7 @@ export default function ChatPage() {
 
         // Multi-transaction response (e.g. tagih tunai + ongkir)
         if (res.data.is_multi && res.data.transactions) {
-          const txList = res.data.transactions;
+          const txList = res.data.transactions.filter(tx => tx.source !== 'SISTEM_TRANSFER');
           const updatedFiltered = filtered.map((m) =>
             m.id === userMsg.id ? { ...m, id: `user-multi-${Date.now()}` } : m
           );

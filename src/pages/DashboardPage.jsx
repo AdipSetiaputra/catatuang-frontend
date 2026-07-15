@@ -230,9 +230,22 @@ export default function DashboardPage() {
                 <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => value >= 1000000 ? `${(value / 1000000).toFixed(1)}jt` : value >= 1000 ? `${value / 1000}k` : value} />
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--text-primary)' }}
-                  itemStyle={{ color: 'var(--text-primary)' }}
-                  formatter={(value) => [formatRupiah(value), '']}
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '10px', fontSize: '0.8rem', color: 'var(--text-primary)', boxShadow: 'var(--shadow-sm)' }}>
+                          <p style={{ margin: '0 0 6px', fontWeight: 600, color: 'var(--text-secondary)' }}>{label}</p>
+                          {payload.map((entry, index) => (
+                            <div key={`item-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: index === payload.length - 1 ? 0 : '4px' }}>
+                              <div style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: entry.color }}></div>
+                              <span>: {formatRupiah(entry.value)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
                 <Area type="monotone" dataKey="masuk" name="Masuk" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorMasuk)" dot={{ r: 3, fill: '#10b981' }} activeDot={{ r: 5 }} />
                 <Area type="monotone" dataKey="keluar" name="Keluar" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorKeluar)" dot={{ r: 3, fill: '#ef4444' }} activeDot={{ r: 5 }} />
